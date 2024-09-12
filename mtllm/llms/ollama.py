@@ -76,7 +76,6 @@ class Ollama(BaseLLM):
             messages=messages,
             options={**self.default_model_params, **model_params},
         )
-        print(output)
         request_info = {}
         request_info["usage"] = {
             "prompt_tokens": output.get("prompt_eval_count"),
@@ -85,13 +84,13 @@ class Ollama(BaseLLM):
 
         }
         response_path = "/tmp/RawResponse.json"
-        requests = []
+        requests_list = []
         if os.path.exists(response_path):
             with open(response_path, "r") as file:
-                requests = json.load(file)
-        requests.append(request_info)
+                requests_list = json.load(file)
+        requests_list.append(request_info)
         with open("/tmp/RawResponse.json", "w") as file:
-            json.dump(requests, file)
+            json.dump(requests_list, file)
         return output["message"]["content"]
 
     def check_model(self, model_name: str) -> bool:
