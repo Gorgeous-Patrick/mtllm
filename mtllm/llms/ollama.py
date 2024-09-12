@@ -83,6 +83,7 @@ class Ollama(BaseLLM):
             "total_tokens": output.get("prompt_eval_count") + output.get("eval_count"),
 
         }
+        request_info["message"] = output["message"]
         response_path = "/tmp/RawResponse.json"
         requests_list = []
         if os.path.exists(response_path):
