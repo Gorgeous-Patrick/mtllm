@@ -1,6 +1,8 @@
 """Ollama client for MTLLM."""
 
 from mtllm.llms.base import BaseLLM
+import os
+import json
 
 REASON_SUFFIX = """
 Reason and return the output result(s) only, adhering to the provided Type in the following format
@@ -62,6 +64,8 @@ class Ollama(BaseLLM):
         assert isinstance(
             meaning_in, str
         ), "Currently Multimodal models are not supported. Please provide a string input."
+        with open("/tmp/RawPrompt.txt", "w") as file:
+            file.write(meaning_in)
         model = str(kwargs.get("model_name", self.model_name))
         if not self.check_model(model):
             self.download_model(model)
@@ -72,6 +76,22 @@ class Ollama(BaseLLM):
             messages=messages,
             options={**self.default_model_params, **model_params},
         )
+        print(output)
+        request_info = {}
+        request_info["usage"] = {
+            "prompt_tokens": output.get("prompt_eval_count"),
+            "completion_tokens": output.get("eval_count"),
+            "total_tokens": output.get("prompt_eval_count") + output.get("eval_count"),
+
+        }
+        response_path = "/tmp/RawResponse.json"
+        requests = []
+        if os.path.exists(response_path):
+            with open(response_path, "r") as file:
+                requests = json.load(file)
+        requests.append(request_info)
+        with open("/tmp/RawResponse.json", "w") as file:
+            json.dump(requests, file)
         return output["message"]["content"]
 
     def check_model(self, model_name: str) -> bool:
